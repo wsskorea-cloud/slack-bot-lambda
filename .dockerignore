@@ -218,4 +218,3 @@ Dockerfile
 LICENSE
 README.md
 test.http
-http-client.env.json
