@@ -5,13 +5,13 @@ on:
     branches:
       - main
     tags:
-      - v*
+      - 'v*'
 
   pull_request:
     branches:
       - main
     tags:
-      - v*
+      - 'v*'
 
   workflow_dispatch:
 
@@ -25,7 +25,7 @@ jobs:
 
       - name: Set env
         id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/v}
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/tags/v}
 
       - name: Docker setup QEMU
         uses: docker/setup-qemu-action@v2.0.0
