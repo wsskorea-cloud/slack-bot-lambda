@@ -4,66 +4,72 @@ import requests
 
 
 def lambda_handler(event, context):
-    sqs_message = event.get('Records')[0]
-    sqs_message = sqs_message.get('body')
-    sqs_message = json.loads(sqs_message)
+    try:
+        sqs_message = event.get('Records')[0]
+        sqs_message = sqs_message.get('body')
+        sqs_message = json.loads(sqs_message)
 
-    SLACK_URL = os.getenv('SLACK_URL')
+        SLACK_URL = os.getenv('SLACK_URL')
 
-    payload = {
-        "blocks": [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": "{}".format(sqs_message.get('title'))
+        payload = {
+            "blocks": [
+                {
+                    "type": "header",
+                    "text": {
+                        "type": "plain_text",
+                        "text": "{}".format(sqs_message.get('title'))
+                    }
+                },
+                {
+                    "type": "section",
+                    "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "*Type:*\n{}".format(sqs_message.get('type'))
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "*When:*\n{}".format(sqs_message.get('when'))
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": "*Where:*\n{}".format(sqs_message.get('where'))
+                        }
+                    ]
+                },
+                {
+                    "type": "section",
+                    "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "*Log*:\n```{}```".format(sqs_message.get('log'))
+                        }
+                    ]
                 }
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "*Type:*\n{}".format(sqs_message.get('type'))
-                    }
-                ]
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "*When:*\n{}".format(sqs_message.get('when'))
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": "*Where:*\n{}".format(sqs_message.get('where'))
-                    }
-                ]
-            },
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "*Log*:\n```{}```".format(sqs_message.get('log'))
-                    }
-                ]
-            }
-        ]
-    }
+            ]
+        }
 
-    r = requests.post(
-        SLACK_URL,
-        json.dumps(payload)
-    )
+        r = requests.post(
+            SLACK_URL,
+            json.dumps(payload)
+        )
 
-    print(payload)
+        return {
+            'statusCode': r.status_code,
+            'body': r.content.decode('UTF-8')
+        }
 
-    return {
-        'statusCode': r.status_code,
-        'body': r.content.decode('UTF-8')
-    }
+    except Exception as e:
+        print(e)
+
+        return {
+            'error': e
+        }
 
 
 # Development Environment Only

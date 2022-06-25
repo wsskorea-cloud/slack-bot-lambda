@@ -1,6 +1,6 @@
 # Slack Bot Lambda Function
 
-[![Build Badge](https://img.shields.io/github/workflow/status/wsskorea-ict/slack-bot-lambda/CI)](#)
+[![Build Badge](https://img.shields.io/github/workflow/status/wsskorea-ict/slack-bot-lambda/CI)](https://github.com/wsskorea-ict/slack-bot-lambda/actions/workflows/main.yml)
 [![Version Badge](https://img.shields.io/github/v/release/wsskorea-ict/slack-bot-lambda)](https://github.com/wsskorea-ict/slack-bot-lambda/releases)
 [![License Badge](https://img.shields.io/github/license/wsskorea-ict/slack-bot-lambda)](https://github.com/wsskorea-ict/slack-bot-lambda/blob/main/LICENSE)
 
