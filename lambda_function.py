@@ -7,7 +7,7 @@ def lambda_handler(event, context):
     try:
         sqs_message = event.get('Records')[0]
         sqs_message = sqs_message.get('body')
-        sqs_message = json.loads(sqs_message)
+        sqs_message = json.loads(sqs_message.encode('UTF-8'))
 
         SLACK_URL = os.getenv('SLACK_URL')
 
