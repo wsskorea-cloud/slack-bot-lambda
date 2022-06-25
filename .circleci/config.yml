@@ -1,0 +1,27 @@
+version: 2.1
+
+workflows:
+  build-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: main
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: mail
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:2021.04
+    steps:
+      - setup_remote_docker:
+          version: 20.10.14
+      - checkout
+      - run: |
+          export DOCKER_CLI_EXPERIMENTAL=enabled
+          docker buildx build .

@@ -1,0 +1,70 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+  pull_request:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: github.event.base_ref == 'refs/heads/main'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set env
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/tags/v}
+
+      - name: Docker setup QEMU
+        uses: docker/setup-qemu-action@v2.0.0
+
+      - name: Docker setup BuildX
+        uses: docker/setup-buildx-action@v2.0.0
+
+      - name: Docker build image
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t slack-bot-lambda:${{ steps.vars.outputs.tag }} .
+
+      - name: Docker login to Github Container Registry
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.PACKAGE_ACCESS_TOKEN }}
+
+      - name: Docker push to Github Container Registry
+        run: |
+          docker tag slack-bot-lambda:${{ steps.vars.outputs.tag }} ghcr.io/wsskorea-ict/slack-bot-lambda:${{ steps.vars.outputs.tag }}
+          docker push ghcr.io/wsskorea-ict/slack-bot-lambda:${{ steps.vars.outputs.tag }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Docker login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Docker push to AWS Elastic Container Registry
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: slack-bot-lambda
+        run: |
+          docker tag slack-bot-lambda:${{ steps.vars.outputs.tag }} ${{ env.AWS_ECR_URL }}:${{ steps.vars.outputs.tag }}
