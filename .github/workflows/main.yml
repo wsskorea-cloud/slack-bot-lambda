@@ -72,8 +72,8 @@ jobs:
       - name: Package function using SAM
         run: |
           sam package \
-            --template-file template.yml \
-            --output-template-file template.yml \
+            --template-file template.yaml \
+            --output-template-file template.yaml \
             --s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
             --s3-prefix slack-bot-lambda
 
@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build-artifact
-          path: package.yml
+          path: package.yaml
 
   deploy:
     needs: build
@@ -112,7 +112,7 @@ jobs:
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --template-file package.yml
+            --template-file package.yaml
             --stack-name slack-bot-lambda \
             --parameter-overrides \
                 LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
