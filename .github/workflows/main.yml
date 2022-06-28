@@ -1,4 +1,4 @@
-name: CI
+name: DevOps
 
 on:
   push:
@@ -50,6 +50,12 @@ jobs:
           push: true
           tags: ghcr.io/wsskorea-ict/slack-bot-lambda:${{ steps.vars.outputs.tag }}
 
+      - name: Setup Python3
+        uses: actions/setup-python@v3
+
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -57,17 +63,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build function using SAM
+        run: sam build
 
-      - name: Build and push to Amazon Elastic Container Registry
-        uses: docker/build-push-action@v3
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: slack-bot-lambda
-        with:
-          context: .
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.tag }}
+      - name: Deploy function using SAM
+        run: |
+          sam deploy \
+          	--no-confirm-changeset \
+          	--no-fail-on-empty-changeset \
+          	--stack-name slack-bot-lambda \
+          	--parameter-overrides \
+              LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
+              SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
+              KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
+              SqsArn=${{ secrets.AWS_SQS_ARN }} \
+          	--s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
+          	--s3-prefix slack-bot-lambda \
+          	--tags Project=Mail

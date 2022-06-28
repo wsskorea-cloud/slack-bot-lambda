@@ -7,7 +7,7 @@ def lambda_handler(event, context):
     try:
         sqs_message = event.get('Records')[0]
         sqs_message = sqs_message.get('body')
-        sqs_message = json.loads(sqs_message.encode('UTF-8'))
+        sqs_message = json.loads(sqs_message)
 
         SLACK_URL = os.getenv('SLACK_URL')
 
@@ -65,7 +65,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print(e)
+        print(str(e))
 
         return {
             'error': e
