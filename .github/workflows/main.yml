@@ -19,7 +19,7 @@ jobs:
   build:
     if: github.event.base_ref == 'refs/heads/main'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -50,11 +50,8 @@ jobs:
           push: true
           tags: ghcr.io/wsskorea-ict/slack-bot-lambda:${{ steps.vars.outputs.tag }}
 
-      - name: Setup Python 3.9
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-          architecture: x64
+      - name: Setup Python3
+        uses: actions/setup-python@v3
 
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
@@ -76,10 +73,10 @@ jobs:
           	--no-fail-on-empty-changeset \
           	--stack-name slack-bot-lambda \
           	--parameter-overrides \
-              LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
-              SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
-              KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
-              SqsArn=${{ secrets.AWS_SQS_ARN }} \
+                LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
+                SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
+                KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
+                SqsArn=${{ secrets.AWS_SQS_ARN }} \
           	--s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
           	--s3-prefix slack-bot-lambda \
           	--tags Project=Mail
