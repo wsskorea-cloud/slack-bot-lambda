@@ -4,6 +4,34 @@
 [![Version Badge](https://img.shields.io/github/v/release/wsskorea-ict/slack-bot-lambda?include_prereleases)](https://github.com/wsskorea-ict/slack-bot-lambda/releases)
 [![License Badge](https://img.shields.io/github/license/wsskorea-ict/slack-bot-lambda)](https://github.com/wsskorea-ict/slack-bot-lambda/blob/main/LICENSE)
 
+## How to use?
+
+### Using Docker
+
+```shell
+docker build -t <AWS ECR IMAGE URI>:tag .
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin <AWS ECR REGISTRY URI>
+docker push <AWS ECR IMAGE URI>:tag
+```
+
+### Using SAM
+
+```shell
+sam build
+sam deploy \
+    --no-confirm-changeset \
+    --no-fail-on-empty-changeset \
+    --stack-name slack-bot-lambda \
+    --parameter-overrides \
+        LambdaFunctionExecutionRoleArn=<AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN> \
+        SlackIncomingWebhookUrl=<SLACK_INCOMING_WEBHOOK_URL> \
+        KmsKeyArn=<AWS_KMS_KEY_ARN> \
+        SqsArn=<AWS_SQS_ARN> \
+    --s3-bucket <AWS_S3_BUCKET> \
+    --s3-prefix slack-bot-lambda \
+    --tags Project=Mail
+```
+
 ## License
 
 MIT License

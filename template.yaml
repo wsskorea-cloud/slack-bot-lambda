@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  slack-bot-lambda
+  
+  Slack Notification Bot for Mail Server Status using SQS.
+
+Parameters:
+  LambdaFunctionExecutionRoleArn:
+    Type: String
+    Description: An IAM role for lambda function to execute function.
+  SlackIncomingWebhookUrl:
+    Type: String
+    Description: An URL to use slack incoming webhook.
+  KmsKeyArn:
+    Type: String
+    Description: A KMS key to encrypt environment variables.
+  SqsArn:
+    Type: String
+    Description: A SQS queue arn to trigger lambda function.
+
+Globals:
+  Function:
+    Timeout: 10
+
+Resources:
+  SlackBotLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Architectures:
+        - x86_64
+      CodeUri: function/
+      Description: A Lambda Function to send messages to Slack from SQS messages through Incoming Webhook.
+      Environment:
+        Variables:
+          SLACK_URL: !Ref SlackIncomingWebhookUrl
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !Ref SqsArn
+      FunctionName: slack-bot-lambda
+      Handler: app.lambda_handler
+      KmsKeyArn: !Ref KmsKeyArn
+      Role: !Ref LambdaFunctionExecutionRoleArn
+      Runtime: python3.9
+      Tags:
+        Project: Mail
+
+Outputs:
+  SlackBotLambdaFunction:
+    Description: "Slack Bot Lambda Function ARN"
+    Value: !GetAtt SlackBotLambdaFunction.Arn
