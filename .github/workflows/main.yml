@@ -19,7 +19,7 @@ jobs:
   build:
     if: github.event.base_ref == 'refs/heads/main'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -59,6 +59,32 @@ jobs:
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
 
+      - name: Build function using SAM
+        run: sam build
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact
+          path: .aws-sam/**/*
+
+
+  deploy:
+    needs: build
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download a Build Artifact
+        with:
+          name: build-artifact
+
+      - name: Setup SAM
+        uses: aws-actions/setup-sam@v2
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -66,20 +92,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Build function using SAM
-        run: sam build
-
       - name: Deploy function using SAM
         run: |
           sam deploy \
-          	--no-confirm-changeset \
-          	--no-fail-on-empty-changeset \
-          	--stack-name slack-bot-lambda \
-          	--parameter-overrides \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --stack-name slack-bot-lambda \
+            --parameter-overrides \
               LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
               SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
               KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
               SqsArn=${{ secrets.AWS_SQS_ARN }} \
-          	--s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
-          	--s3-prefix slack-bot-lambda \
-          	--tags Project=Mail
+            --s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
+            --s3-prefix slack-bot-lambda \
+            --tags Project=Mail
