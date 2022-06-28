@@ -72,7 +72,8 @@ jobs:
       - name: Package function using SAM
         run: |
           sam package \
-            --template-file package.yml \
+            --template-file template.yml \
+            --output-template-file template.yml \
             --s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
             --s3-prefix slack-bot-lambda
 
@@ -114,8 +115,8 @@ jobs:
             --template-file package.yml
             --stack-name slack-bot-lambda \
             --parameter-overrides \
-              LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
-              SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
-              KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
-              SqsArn=${{ secrets.AWS_SQS_ARN }} \
+                LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
+                SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
+                KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
+                SqsArn=${{ secrets.AWS_SQS_ARN }} \
             --tags Project=Mail
