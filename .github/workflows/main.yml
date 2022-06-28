@@ -50,6 +50,13 @@ jobs:
           push: true
           tags: ghcr.io/wsskorea-ict/slack-bot-lambda:${{ steps.vars.outputs.tag }}
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Setup Python 3.9
         uses: actions/setup-python@v4
         with:
@@ -62,12 +69,18 @@ jobs:
       - name: Build function using SAM
         run: sam build
 
+      - name: Package function using SAM
+        run: |
+          sam package \
+            --template-file package.yml \
+            --s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
+            --s3-prefix slack-bot-lambda
+
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: build-artifact
-          path: .aws-sam/**/*
-
+          path: package.yml
 
   deploy:
     needs: build
@@ -98,12 +111,11 @@ jobs:
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
+            --template-file package.yml
             --stack-name slack-bot-lambda \
             --parameter-overrides \
               LambdaFunctionExecutionRoleArn=${{ secrets.AWS_LAMBDA_FUNCTION_EXECUTION_ROLE_ARN }} \
               SlackIncomingWebhookUrl=${{ secrets.SLACK_INCOMING_WEBHOOK_URL }} \
               KmsKeyArn=${{ secrets.AWS_KMS_KEY_ARN }} \
               SqsArn=${{ secrets.AWS_SQS_ARN }} \
-            --s3-bucket ${{ secrets.AWS_S3_BUCKET }} \
-            --s3-prefix slack-bot-lambda \
             --tags Project=Mail
